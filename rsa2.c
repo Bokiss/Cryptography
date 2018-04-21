@@ -5,12 +5,14 @@
 #include <gmp.h>
 #include <time.h>
 #include <unistd.h>
+#include "linkedList.h"
+
 #define maxNumber 18446744073709551615
-#define range 512
+#define range 64
 #define primeTestRepeats 50
 
-//git commit22
 gmp_randstate_t state;
+int* stringtoint(char *);
 void initializevariables();
 void generateRandom();
 void generateRandominRange(mpz_t *,mpz_t);
@@ -18,12 +20,28 @@ void menu();
 void rsa();
 int checkprime();
 void euclidianGCD(mpz_t,mpz_t,double *);
-void extendedEuclidean(int ,int );
+void extendedEuclidean(mpz_t ,mpz_t,mpz_t);
 int main(void)
 {
   initializevariables();
   menu();
   
+}
+int* stringtoint(char *string)
+{
+  int *encode;
+  char ch;
+  int i,counter;
+  counter = 0;
+  while( (ch=string[counter]) != '\0' )
+  {
+    printf("c = -%c-\n",ch);
+    *encode = (int) ch ;
+    *encode++;
+    counter++;
+  }
+  //for(i=0;i<)
+  return encode;
 }
 /* Initialize seeds Once */
 void initializevariables(){
@@ -37,6 +55,8 @@ void initializevariables(){
 
   //initialize State 
   gmp_randinit_default(state);
+  //initialize precision bits for floats
+  mpf_set_default_prec(50);
 
   //create seed 
   srand((unsigned) time(&timeseed));
@@ -77,17 +97,22 @@ void menu()
     }
     else if(choice == 3)
     {
+      //stringtoint("asdg asd");
+      //pri();
+      struct Node* tail = NULL;
+      
       /*
       mpz_t a,b;
       mpz_init(a);
       mpz_init(b);
-      */
+      
       int a,b;
       printf("A = \n");
       scanf("%d",&a);
       printf("B = \n");
       scanf("%d",&b);
       extendedEuclidean(a,b);
+      */
       
     }
   }
@@ -173,7 +198,19 @@ void rsa()
     printf("GCD = %lf\n",gcd);
     //if(gcd != 1){mpz_add_ui(random,random,1);}
   }
-  
+  mpz_set(e,random);
+  gcd = 0;
+  while( mpz_cmp_d(tempf,0) != 0)
+  {
+    //mpz_set(tempf,e);
+    generateRandominRange(&random,f);
+    mpz_mul(tempf,e,random);
+    mpz_sub(tempf,tempf,temp);
+    gmp_printf("ed=%Zd\nf=%Zd\n",tempf,f);
+    mpz_mod(tempf,tempf,f);
+    gmp_printf("MOD = %Zd\n",tempf);
+    //euclidianGCD(random,e,&gcd);
+  }
 
   //clear before exit
   mpz_clear(p);
@@ -188,9 +225,16 @@ void rsa()
 
 void euclidianGCD(mpz_t a,mpz_t b,double *gcd)
 {
-    mpz_t temp;
+    mpz_t temp,tempa,tempb;
     mpz_init(temp);
-    //gmp_printf("E-GCD while a = %Zd b = %Zd\n",a,b);
+    mpz_init(tempa);
+    mpz_init(tempb);
+
+    //copy values
+    mpz_set(tempa,a);
+    mpz_set(tempb,b);
+
+    //gmp_printf("E-GCD while a = %Zd b = %Zd\n",a,b); FIX
     if( a < 0){mpz_abs(a,a);}
     else if( b < 0){mpz_abs(b,b);}
     if(b > a)
@@ -202,16 +246,16 @@ void euclidianGCD(mpz_t a,mpz_t b,double *gcd)
     else if(a >= b)
     {
       //printf("E-GCD - a >= b\n");
-      while( mpz_cmp_d(b,0) > 0)
+      while( mpz_cmp_d(tempb,0) > 0)
       {
         //gmp_printf("E-GCD while a = %Zd b = %Zd\n",a,b);
-        mpz_mod(temp,a,b);
-        mpz_set(a,b);
-        mpz_set(b,temp);
+        mpz_mod(temp,tempa,tempb);
+        mpz_set(tempa,tempb);
+        mpz_set(tempb,temp);
         //gmp_printf("E-GCD while a = %Zd b = %Zd\n",a,b);
         sleep(0.2);
       }
-      *gcd = mpz_get_d(a);
+      *gcd = mpz_get_d(tempa);
       return ;
       
     }
@@ -221,42 +265,105 @@ void euclidianGCD(mpz_t a,mpz_t b,double *gcd)
     }
 
 }
-void extendedEuclidean(int a,int b)
+void extendedEuclidean(mpz_t a,mpz_t b,mpz_t d)
 {
-  if(b == 0)
-  {
+  if(mpz_cmp(b,a) > 0 ){printf("b>a\n");return extendedEuclidean(b,a,d);}
+  //create new vars
+  mpz_t tempa,tempb,x,x1,x2,y,y1,y2,q,r,save;
+  //float vars
+  //mpf_t q;
+  //initiate vars
+  mpz_init(tempa);
+  mpz_init(tempb);
+  mpz_init(x);
+  mpz_init(x1);
+  mpz_init(x2);
+  mpz_init(y);
+  mpz_init(y1);
+  mpz_init(y2);
+  mpz_init(r);
+  mpz_init(q);
+  mpz_init(save);
 
+  //copy a and b
+  mpz_set(tempa,a);
+  mpz_set(tempb,b);
+  gmp_printf("tempa=%Zd\ntempb=%Zd\n",tempa,tempb);
+  if(mpz_cmp_d(tempb,0) == 0)
+  {
+    printf("Extended-- tempb == 0\nn");
   }
   else
   {
-    int x,x1,x2,y,y1,y2,r,q,d;
-    x1 = 0;
-    x2 = 1;
-    y1 = 1;
-    y2 = 0;
-    while( b > 0)
+    mpz_set_ui(x2,1);
+    mpz_set_ui(y1,1);
+    while( mpz_cmp_d(tempb,0) > 0)
     {
       //3.1
-      q = a/b;
-      r = a - (q*b);
-      x = x2 - (q*x1);
-      y = y2 - (q*y1);
-      printf("q = %d,r = %d,x = %d,y = %d,a = %d,b=%d\n",q,r,x,y,a,b);
+      //q = a - b
+      mpz_cdiv_q(q,tempa,tempb);
+      gmp_printf("q = %Zd\n",q);
+      //r = a - (q*b)
+      mpz_mul(save,q,b);
+      mpz_sub(r,tempa,save);
+      gmp_printf("r = %Zd\n",r);
+      //x = x2 - (q*x1)
+      mpz_mul(save,q,x1);
+      mpz_sub(x,x2,save);
+      gmp_printf("x = %Zd\n",x);
+      //y = y2 - (q*y1)
+      mpz_mul(save,q,y1);
+      mpz_sub(y,y2,save);
+      gmp_printf("y = %Zd\n",y);
+      //gmp_printf("q = %Zd,r = %Zd,x = %Zd,y = %Zd,a = %Zd,b=%Zd\n",q,r,x,y,a,b);
       //3.2
-      a = b;
-      b = r;
-      x2 = x1;
-      x1 = x;
-      y2 = y1;
-      y1 = y;
-      printf("q = %d,r = %d,x = %d,y = %d,a = %d,b=%d\n\n",q,r,x,y,a,b);
+      //a = b;
+      mpz_set(tempa,tempb);
+      gmp_printf("tempa = %Zd\n",tempa);
+      //b = r;
+      mpz_set(tempb,r);
+      gmp_printf("tempb = %Zd\n",tempb);
+      //x2 = x1;
+      mpz_set(x2,x1);
+      gmp_printf("x2 = %Zd\n",x2);
+      //x1 = x;
+      mpz_set(x1,x);
+      gmp_printf("x1 = %Zd\n",x1);
+      //y2 = y1;
+      mpz_set(y2,y1);
+      gmp_printf("y2 = %Zd\n",y2);
+      //y1 = y;
+      mpz_set(y1,y);
+      gmp_printf("y1 = %Zd\n",y1);
+      //gmp_printf("q = %Zd,r = %Zd,x = %Zd,y = %Zd,a = %Zd,b=%Zd\n",q,r,x,y,a,b);
     }
 
-    d = a;
-    x = x2;
-    y = y2;
+    //d = a;
+    mpz_set(d,tempa);
+    gmp_printf("d = %Zd\n",d);
+    //x = x2;
+    mpz_set(x,x2);
+    gmp_printf("x = %Zd\n",x);
+    //y = y2;
+    mpz_set(y,y2);
+    gmp_printf("y = %Zd\n",y);
 
-    printf("ax+by=d\n");
-    printf("%d*%d+%d*%d=%d",a,x,b,y,d);
+    //printf("ax+by=d\n");
+    //gmp_printf("%Zd*%Zd+%Zd*%Zd=%Zd",a,x,b,y,d);
+    gmp_printf("D = %Zd\n",d);
   }
+
+  //clear variables
+  mpz_clear(tempa);
+  mpz_clear(tempb);
+  mpz_clear(x);
+  mpz_clear(x1);
+  mpz_clear(x2);
+  mpz_clear(y);
+  mpz_clear(y1);
+  mpz_clear(y2);
+  mpz_clear(r);
+  mpz_clear(q);
+  mpz_clear(save);
+  sleep(5);
 }
