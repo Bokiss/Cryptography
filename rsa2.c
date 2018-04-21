@@ -9,7 +9,7 @@
 #define range 512
 #define primeTestRepeats 50
 
-
+//git commit
 gmp_randstate_t state;
 void initializevariables();
 void generateRandom();
