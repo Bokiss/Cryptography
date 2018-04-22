@@ -12,7 +12,9 @@
 #define primeTestRepeats 50
 
 gmp_randstate_t state;
-int* stringtoint(char *);
+void getText(char *);
+void stringtoint(struct Node**,char *);
+char* inttostring(struct Node**);
 void initializevariables();
 void generateRandom();
 void generateRandominRange(mpz_t *,mpz_t);
@@ -27,21 +29,40 @@ int main(void)
   menu();
   
 }
-int* stringtoint(char *string)
+void getText(char* text)
 {
-  int *encode;
-  char ch;
-  int i,counter;
-  counter = 0;
-  while( (ch=string[counter]) != '\0' )
+  printf("Enter text: ");
+  scanf("%s",text);
+}
+void stringtoint(struct Node** head,char *string)
+{
+  int data;
+  while( *string != '\0')
   {
-    printf("c = -%c-\n",ch);
-    *encode = (int) ch ;
-    *encode++;
-    counter++;
+    data = (int) *string;
+    append(head,data);
+    *(string)++;
   }
-  //for(i=0;i<)
-  return encode;
+}
+char* inttostring(struct Node** head)
+{
+  char data[500];
+  char *str;
+  int temp=1,counter=0;
+  while( (temp > 0) || (counter>=500))
+  {
+    temp = popfirstNode(head);
+    if(temp > 0)
+    {
+      data[counter]= temp;
+      printf("%c",temp);
+      counter++;
+     } 
+  }
+  printf("\n");
+  str = (char*) malloc(sizeof(char)*counter);
+  str = data ;
+  return str;
 }
 /* Initialize seeds Once */
 void initializevariables(){
@@ -99,9 +120,20 @@ void menu()
     {
       //stringtoint("asdg asd");
       //pri();
-      struct Node* tail = NULL;
-      
+      char text[500];
+      getText(text);
+      struct Node* head = NULL;
+      stringtoint(&head,text); 
+      printList(head);
+      printf("BACK %s",inttostring(&head));
       /*
+      printf("Poping\n");
+      while( ch2 >= 0)
+      {
+        ch2 = popfirstNode(&head);
+        printf("%d->",ch2);        
+      }
+      
       mpz_t a,b;
       mpz_init(a);
       mpz_init(b);
