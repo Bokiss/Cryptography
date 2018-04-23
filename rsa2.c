@@ -6,6 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "linkedList.h"
+#include "rsa_keys.h"
 
 #define maxNumber 18446744073709551615
 #define range 64
@@ -125,7 +126,7 @@ void menu()
       struct Node* head = NULL;
       stringtoint(&head,text); 
       printList(head);
-      printf("BACK %s",inttostring(&head));
+      printf("BACK %s\n",inttostring(&head));
       /*
       printf("Poping\n");
       while( ch2 >= 0)
@@ -150,7 +151,7 @@ void menu()
   }
   while(choice != 0 );
 
-  mpz_clear(random);
+  //mpz_clear(random);
 
 }
 void generateRandom(mpz_t *random)
@@ -175,7 +176,7 @@ void rsa()
 {
   double gcd;
   //declare and init 2 large randoms
-  mpz_t p,q,n,f,e,temp,random,tempf;
+  mpz_t p,q,n,f,e,d,temp,random,tempf;
   mpz_init(p);
   mpz_init(q);
   mpz_init(n);
@@ -184,6 +185,7 @@ void rsa()
   mpz_init(temp);
   mpz_init(tempf);
   mpz_init(random);
+  mpz_init(d);
   //create randoms
   generateRandom(&p);
   generateRandom(&q);
@@ -230,20 +232,30 @@ void rsa()
     printf("GCD = %lf\n",gcd);
     //if(gcd != 1){mpz_add_ui(random,random,1);}
   }
+  //save e
   mpz_set(e,random);
-  gcd = 0;
-  while( mpz_cmp_d(tempf,0) != 0)
+  int testinvert = 0;
+  while( testinvert == 0)
   {
     //mpz_set(tempf,e);
     generateRandominRange(&random,f);
-    mpz_mul(tempf,e,random);
-    mpz_sub(tempf,tempf,temp);
-    gmp_printf("ed=%Zd\nf=%Zd\n",tempf,f);
-    mpz_mod(tempf,tempf,f);
-    gmp_printf("MOD = %Zd\n",tempf);
+    gmp_printf("New Random = %Zd\n",random);
+    testinvert = mpz_invert(d,e,f);
+    gmp_printf("D = %Zd\n",d);
     //euclidianGCD(random,e,&gcd);
   }
-
+  struct public_key* pubkey;
+  struct private_key* privkey;
+  printf("hello");
+  mpz_init(pubkey->n);
+  mpz_init(pubkey->e);
+  mpz_set(pubkey->n,n);
+  mpz_set(pubkey->e,e);
+  printf("hello");
+  mpz_init(privkey->d);
+  //mpz_init(privkey->n);
+  //mpz_set(privkey->d,d);
+  //mpz_set(privkey->n,n);
   //clear before exit
   mpz_clear(p);
   mpz_clear(q);

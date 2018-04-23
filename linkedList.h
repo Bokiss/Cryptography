@@ -43,7 +43,9 @@ int popfirstNode(struct Node** head)
 	}
 	//copy data
 	int data = (*head)->data;
+	//move head to next node
 	*head = (*head)->next;
+	//free curent head
 	free(parse);
 	return data;
 	//(*head)
