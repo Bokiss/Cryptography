@@ -6,23 +6,35 @@
 #include <time.h>
 #include <unistd.h>
 #include "linkedList.h"
-#include "rsa_keys.h"
 
 #define maxNumber 18446744073709551615
 #define range 64
 #define primeTestRepeats 50
-
+struct public_key
+{
+	mpz_t n,e;
+};
+struct private_key
+{
+	mpz_t d,n;
+};
 gmp_randstate_t state;
 
 void initializevariables();
 void createRSAkeypair(struct public_key*,struct private_key*);
 void randomtoprime();
+void encrypt(struct public_key*);
+void computeCiphertext();
+void decrypt();
 int main(void)
 {
 	//initialize SEED and STATE
 	initializevariables();
 	int choice = -1;
-
+	struct public_key pubkey,*p;
+	struct private_key privkey,*pp;
+	p = &pubkey;
+	pp = &privkey;
 	while(choice != 0)
 	{
 		printf("\n\n1)Create RSA keys\n");
@@ -33,10 +45,11 @@ int main(void)
 
     	if(choice == 1)
     	{
-    		struct public_key* pubkey;
-    		struct private_key* privkey;
-    		createRSAkeypair(pubkey,privkey);
-    		//gmp_printf("Pubkey N = %Zd",pubkey->n);
+    		createRSAkeypair(p,pp);
+    	}
+    	else if(choice == 2)
+    	{
+    		
     	}
 	}
 }
@@ -135,23 +148,18 @@ void createRSAkeypair(struct public_key* pubkey,struct private_key* privkey)
 		gmp_printf("D = %Zd\n",d);
 	}while( mpz_invert(d,e,f) == 0);
 	
-	printf("=====Nums Created=====\n");
+	//printf("=====Nums Created=====\n");
 
 	//create public key
-	//mpz_init(pubkey->n);
-	//mpz_init(pubkey->e);
+	mpz_init_set(pubkey->n,n);
+	mpz_init_set(pubkey->e,n);
 
-	mpz_set(pubkey->n,n);
-	mpz_set(pubkey->e,e);
-	
 	//create private key
-	//mpz_init(privkey->d);
-	//mpz_init(privkey->n);
-
-	//mpz_set(privkey->d,d);
-	//mpz_set(privkey->n,n);
+	mpz_init_set(privkey->d,d);
+	mpz_init_set(privkey->n,n);
 
 	printf("===KEYS CREATED===");
+	return;
 
 }
 void randomtoprime(mpz_t random)
@@ -162,4 +170,10 @@ void randomtoprime(mpz_t random)
 	{
 		mpz_nextprime(random,random);
 	}
+}
+void computeCiphertext()
+{
+	mpz_t b;
+
+	mpz_init_set(b,1);
 }
