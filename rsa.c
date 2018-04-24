@@ -6,27 +6,16 @@
 #include <time.h>
 #include <unistd.h>
 #include "linkedList.h"
+#include "utility.h"
+#include "rsa_keys.h"
 
-#define maxNumber 18446744073709551615
-#define range 64
-#define primeTestRepeats 50
-struct public_key
-{
-	mpz_t n,e;
-};
-struct private_key
-{
-	mpz_t d,n;
-};
-gmp_randstate_t state;
 
-void initializevariables();
+
+
 void createRSAkeypair(struct public_key*,struct private_key*);
-void randomtoprime();
 void encrypt(struct public_key,char*,struct Node**,struct Node**);
-void computeCiphertext();
-void decrypt();
-void stringtoint(struct Node**,char *);
+void decrypt(struct private_key,struct Node**);
+
 int main(void)
 {
 	//initialize SEED and STATE
@@ -34,13 +23,15 @@ int main(void)
 	int choice = -1;
 	struct public_key pubkey,*p;
 	struct private_key privkey,*pp;
+	struct Node *head = NULL;
+	struct Node *encryptedhead = NULL;
 	p = &pubkey;
 	pp = &privkey;
 	while(choice != 0)
 	{
 		printf("\n\n1)Create RSA keys\n");
     	printf("2) Encrypt with RSA \n");
-    	printf("3) GCD\n");
+    	printf("3) Decrypt with RSA\n");
     	printf("0)Exit\n");
     	scanf("%d",&choice);
 
@@ -55,54 +46,16 @@ int main(void)
     		printf("Enter text to encrypt \n");
     		scanf("%s",data);
     		//initialize linked list 
-    		struct Node *head = NULL;
-    		struct Node *encryptedhead = NULL;
   			//send text for encryption
     		encrypt(pubkey,data,&head,&encryptedhead);
-    		printList(head);
+    		printList(encryptedhead);
+    	}
+    	else if(choice == 3)
+    	{
+    		decrypt(privkey,&encryptedhead);
+    		printList(encryptedhead);
     	}
 	}
-}
-/* Initialize seeds Once */
-void initializevariables(){
-  //variables
-  mpz_t seed;
-  unsigned long long int tempseed;
-  time_t timeseed;
-
-  //initialize variables
-  mpz_init(seed);
-
-  //initialize State 
-  gmp_randinit_default(state);
-  //initialize precision bits for floats
-  mpf_set_default_prec(50);
-
-  //create seed 
-  srand((unsigned) time(&timeseed));
-
-  tempseed = rand() % maxNumber;
-  printf("Time seed : %llu\n",tempseed);
-
-  //initialize seed
-  mpz_set_ui(seed,tempseed);
-
-  gmp_randseed(state,seed);
-}
-void generateRandominRange(mpz_t random,mpz_t max)
-{
-	mpz_urandomm(random, state, max);
-  	//gmp_printf("Random in Range = %Zd\n", random);
-}
-void generateRandomBits(mpz_t random,unsigned long int maxBit)
-{
-	do
-	{
-		mpz_urandomb(random, state, maxBit);
-		printf("Random\n");
-	}while(mpz_sizeinbase(random,2) < 512); //accept only 512bit randoms
-	
-  	//gmp_printf("Random spec.Bits = %Zd\n", random);
 }
 void createRSAkeypair(struct public_key* pubkey,struct private_key* privkey)
 {
@@ -157,7 +110,7 @@ void createRSAkeypair(struct public_key* pubkey,struct private_key* privkey)
 		generateRandominRange(d,f);
 		gmp_printf("D = %Zd\n",d);
 	}while( mpz_invert(d,e,f) == 0);
-	
+	gmp_printf("END D = %Zd\n",d);
 	//printf("=====Nums Created=====\n");
 
 	//create public key
@@ -172,15 +125,7 @@ void createRSAkeypair(struct public_key* pubkey,struct private_key* privkey)
 	return;
 
 }
-void randomtoprime(mpz_t random)
-{
-	int primetest;
-	primetest = mpz_probab_prime_p(random,primeTestRepeats);
-	if(primetest == 0)
-	{
-		mpz_nextprime(random,random);
-	}
-}
+
 void encrypt(struct public_key pubkey,char *data,struct Node **head,struct Node **encryptedhead)
 {
 	mpz_t d,ciphertext;
@@ -201,17 +146,23 @@ void encrypt(struct public_key pubkey,char *data,struct Node **head,struct Node 
 		}
 	}
 }
-void stringtoint(struct Node** head,char *string)
+
+void decrypt(struct private_key privkey,struct Node** head)
 {
-	int data;
-	mpz_t temp;
-	mpz_init(temp);
-	while( *string != '\0')
+	mpz_t plaintext,ciphertext;
+
+	mpz_init(plaintext);
+	mpz_init(ciphertext);
+
+	while( mpz_cmp_d(ciphertext,-1) != 0)
 	{
-		data = (int) *string;
-		mpz_set_ui(temp,data);
-		append(head,temp);
-		*(string)++;
+		popfirstNode(head,ciphertext);
+		if( mpz_cmp_d(ciphertext,-1) != 0)
+		{
+			gmp_printf("Ciphertext = %Zd\n",ciphertext);
+			mpz_powm(plaintext,ciphertext,privkey.d,privkey.n);
+			gmp_printf("Plaintext = %Zd\n",plaintext);
+		}
+		
 	}
-	mpz_clear(temp);
 }
