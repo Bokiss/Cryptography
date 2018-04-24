@@ -1,9 +1,9 @@
 struct Node
 {
-  int data;
+  mpz_t data;
   struct Node *next;
 };
-void append(struct Node** head,int data)
+void append(struct Node** head,mpz_t data)
 {
 	//allocate new node
 	printf("\n----------\n");
@@ -11,7 +11,8 @@ void append(struct Node** head,int data)
 	struct Node* parse = *head;
 
 	//save data to new node
-	new_node->data = data;
+	mpz_init_set(new_node->data,data);
+	//new_node->data = data;
 	//it will be last node so ->next = NULL
 	new_node->next = NULL;
 
@@ -32,22 +33,24 @@ void append(struct Node** head,int data)
 	parse->next = new_node;
 	return;
 }
-int popfirstNode(struct Node** head)
+void popfirstNode(struct Node** head,mpz_t data)
 {
 	struct Node* parse = *head;
 	//if list is empty
 	if(*head == NULL)
 	{
 		printf("List is empty\n");
-		return -1;
+		mpz_set_d(data,-1);
+		return;
 	}
 	//copy data
-	int data = (*head)->data;
+	mpz_set(data,(*head)->data);
+	//int data = (*head)->data;
 	//move head to next node
 	*head = (*head)->next;
 	//free curent head
 	free(parse);
-	return data;
+	return ;
 	//(*head)
 
 }
@@ -55,7 +58,7 @@ void printList(struct Node* head)
 {
 	while(head != NULL)
 	{
-		printf("d = %d\n",head->data);
+		gmp_printf("d = %Zd\n",head->data);
 		head = head->next;
 	}
 }

@@ -23,9 +23,10 @@ gmp_randstate_t state;
 void initializevariables();
 void createRSAkeypair(struct public_key*,struct private_key*);
 void randomtoprime();
-void encrypt(struct public_key*);
+void encrypt(struct public_key,char*,struct Node**,struct Node**);
 void computeCiphertext();
 void decrypt();
+void stringtoint(struct Node**,char *);
 int main(void)
 {
 	//initialize SEED and STATE
@@ -49,7 +50,16 @@ int main(void)
     	}
     	else if(choice == 2)
     	{
-    		
+    		//get text for encryption
+    		char data[500];
+    		printf("Enter text to encrypt \n");
+    		scanf("%s",data);
+    		//initialize linked list 
+    		struct Node *head = NULL;
+    		struct Node *encryptedhead = NULL;
+  			//send text for encryption
+    		encrypt(pubkey,data,&head,&encryptedhead);
+    		printList(head);
     	}
 	}
 }
@@ -171,9 +181,37 @@ void randomtoprime(mpz_t random)
 		mpz_nextprime(random,random);
 	}
 }
-void computeCiphertext()
+void encrypt(struct public_key pubkey,char *data,struct Node **head,struct Node **encryptedhead)
 {
-	mpz_t b;
+	mpz_t d,ciphertext;
 
-	mpz_init_set(b,1);
+	mpz_init(d);
+	mpz_init(ciphertext);
+	// make text integers
+	stringtoint(head,data);
+
+	while( mpz_cmp_d(d,-1) != 0)
+	{
+		popfirstNode(head,d);
+		//compute ciphertext 
+		if( mpz_cmp_d(d,-1) != 0)
+		{
+			mpz_powm(ciphertext,d,pubkey.e,pubkey.n);
+			append(encryptedhead,ciphertext);
+		}
+	}
+}
+void stringtoint(struct Node** head,char *string)
+{
+	int data;
+	mpz_t temp;
+	mpz_init(temp);
+	while( *string != '\0')
+	{
+		data = (int) *string;
+		mpz_set_ui(temp,data);
+		append(head,temp);
+		*(string)++;
+	}
+	mpz_clear(temp);
 }
