@@ -9,9 +9,6 @@
 #include "utility.h"
 #include "rsa_keys.h"
 
-
-
-
 void createRSAkeypair(struct public_key*,struct private_key*);
 void encrypt(struct public_key,char*,struct Node**,struct Node**);
 void decrypt(struct private_key,struct Node**);
