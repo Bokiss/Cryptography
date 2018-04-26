@@ -73,29 +73,45 @@ void inttostring(struct Node** head,char *string)
 
 }
 // 2.143
-void RSMA(mpz_t a,mpz_t k,mpz_t b)
+void RSMA(mpz_t a,mpz_t b,mpz_t n,int *k,int size)
 {
-  mpz_t tempA;
+  int i=1;
+  mpz_t tempA,temp;
 
   mpz_init(tempA);
+  mpz_init(temp);
 
 
   //if k = 0 return b=1
+  /*
   if( mpz_cmp_d(k,0) == 0)
   {
     mpz_set_d(b,1);
     return;
   }
-
+  */
+  //set b = 1
+  mpz_set_d(b,1);
   //set A = a
   mpz_set(tempA,a);
 
-  // if k0 = 1 ( k =1 )
-  if( mpz_cmp_d(k,1) == 0 )
+  // if k0 = 1 set b = a
+  if( k[0] == 1)
   {
     mpz_set(b,a);
   }
-  //for(int i=1)
+  for(int i=1;i<=size;i++)
+  {
+    // A  = A^2 ;
+    mpz_mul(tempA,tempA,tempA);
+    // A = A mod n
+    mpz_mod(tempA,tempA,n);
+    if( k[i] == 1)
+    {
+      mpz_mul(temp,tempA,b);
+      mpz_mod(b,temp,n);
+    }
+  }
 
 }
 mpz_t* convert(mpz_t *dec)
@@ -134,7 +150,7 @@ mpz_t* convert(mpz_t *dec)
     return p;
   }
 }
-void tobinary(mpz_t random,unsigned long int  *binary)
+void tobinary(mpz_t random, int *binary)
 {
   int tempd;
   unsigned long int mod;
@@ -145,13 +161,13 @@ void tobinary(mpz_t random,unsigned long int  *binary)
   while( mpz_cmp_d(random,1) > 0)
   {
     //printf("while\n");
-  gmp_printf("Random = %Zd\n",random);
+  //gmp_printf("Random = %Zd\n",random);
     mod = mpz_mod_ui(temp,random,2);
-    printf("MOD = %lu\n",mod);
-    gmp_printf("TEMP = %Zd\n",temp);
+    //printf("MOD = %lu\n",mod);
+    //gmp_printf("TEMP = %Zd\n",temp);
     //printf("while2\n");
     //tempd = mpz_get_d(temp);
-    binary[i] = mod;
+    binary[i] = (int) mod;
     //printf("while3\n");
     mpz_set_d(temp,2);
     //round towards -infinity
@@ -161,31 +177,97 @@ void tobinary(mpz_t random,unsigned long int  *binary)
   }
   printf("\n=========\n");
   binary[i]=1;
-  for (int j = 0; j < i; j++)
+  for (int j = 0; j <= i; j++)
   {
-      printf("%lu",binary[j]);
+      printf("%d",binary[j]);
   }
   printf("\n");
   return;
 }
-int convertd(int dec)
-
+void extendedEuclidean(mpz_t a,mpz_t b,mpz_t d,mpz_t x,mpz_t y)
 {
+  gmp_printf("A = %Zd\n",a);
+  mpf_t tempA,tempB,q,x1,x2,y1,y2,r,temp,tempx,tempy;
+  //set default precision
+  mpf_set_default_prec(36);
+  //init variables
+  mpf_init(tempA);
+  mpf_init(tempB);
+  mpf_init(q);
+  mpf_init(x1);
+  mpf_init(x2);
+  mpf_init(y1);
+  mpf_init(y2);
+  mpf_init(r);
+  mpf_init(temp);
+  mpf_init(tempx);
+  mpf_init(tempy);
 
-    if (dec == 0)
+  mpf_set_z(tempA,a);
+  gmp_printf("TEMPA = %Zf\n",tempA);
+  mpf_set_z(tempB,b);
+  mpf_set_z(tempx,x);
+  mpf_set_z(tempy,y);
+  printf("vars seted\n");
+  //Step 1 if b = 0 
+  if( mpf_cmp_d(tempB,0) == 0 )
+  {
+    printf("tempb = 0\n");
+    mpz_set(d,a);
+    //x=1 y=0;
+    return;
+  }
 
-    {
-
-        return 0;
-
-    }
-
-    else
-
-    {
-
-        return (dec % 2 + 10 * convertd(dec / 2));
-
-    }
+  //Step 2 x2 = 1 y1=1
+  printf("1\n");
+  mpf_set_d(x2,1);
+  printf("1\n");
+  mpf_set_d(y1,1);
+  printf("1\n");
+  //Step 3 while b>0
+  while( mpf_cmp_d(tempB,0) > 0)
+  {
+    //3.1
+    // q = a/b
+    printf("1\n");
+    mpf_div(q,tempA,tempB);
+    gmp_printf("Q = %Zf\n",q);
+    // temp = q*b
+    mpf_mul(temp,q,tempB);
+    // r = a - temp;
+    mpf_sub(r,tempA,temp);
+    gmp_printf("R = %Zf\n",r);
+    // temp = q*x1
+    mpf_mul(temp,q,x1);
+    // x = x2 - temp
+    mpf_sub(tempx,x2,temp);
+    gmp_printf("X = %Zf\n",tempx);
+    // temp = q * y1
+    mpf_mul(temp,q,y1);
+    //y = y2 - temp
+    mpf_sub(tempy,y2,temp);
+    gmp_printf("Y = %Zf\n",tempy);
+    //3,2
+    // a = b
+    mpf_set(tempA,tempB);
+    // b = r
+    mpf_set(r,tempB);
+    //x2 = x1
+    mpf_set(x2,x1);
+    //x1 = x
+    mpf_set(x1,tempx);
+    //y1 = y1
+    mpf_set(y2,y1);
+    //y1 = y
+    mpf_set(y1,tempy);    
+    sleep(1);
+  }
+  //Step 4
+  gmp_printf("F,D = %Zf\n",tempA);
+  mpz_set_f(d,tempA);
+  gmp_printf("Z,D = %Zd\n",d);
+  mpz_set_f(x,x2);
+  mpz_set_f(y,y2);
+  return;
 
 }

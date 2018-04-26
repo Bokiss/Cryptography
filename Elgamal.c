@@ -23,7 +23,7 @@ int main(void)
 	//printf("asd");
 	//STEP 1
 	initializevariables();
-	printf("asd\n");
+
 	/*
 	do
 	{
@@ -55,9 +55,10 @@ int main(void)
 	//mpz_add(a,temp);
 
 	//Compute generator*a mod p
+	/*
 	mpz_t test;
 	mpz_t *t;
-	unsigned long int  binary[bits];
+	int  binary[bits];
 	//mpz_init(t);
 	mpz_init(test);
 	t = &test;
@@ -69,10 +70,28 @@ int main(void)
 	printf("\n\n\n");
 	for(int i=0;i<bits;i++)
 	{
-		printf("%lu",binary[i]);
+		printf("%d",binary[i]);
 	}
 	printf("\n");
+	*/
+	mpz_t n,x,y,b;
 
+	mpz_init(b);
+	mpz_init(n);
+	mpz_init(x);
+	mpz_init(y);
+
+	mpz_set_d(a,4864);
+	mpz_set_d(b,3458);
+	//int binary[10];
+
+	//tobinary(k,binary);
+
+
+	//RSMA(a,b,n,binary,10);
+	//gmp_printf("B = %Zd",b);
+	extendedEuclidean(a,b,n,x,y);
+	gmp_printf("%Zd = %Zdx + %Zdy",n,x,y);
 	//gmp_printf("t = %Zd\n",t);
 	//printf("test3 = %d\n",t);
 	//char binary[5000];

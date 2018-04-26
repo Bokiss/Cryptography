@@ -131,14 +131,16 @@ void encrypt(struct public_key pubkey,char *data,struct Node **head,struct Node 
 	mpz_init(ciphertext);
 	// make text integers
 	stringtoint(head,data);
-
+	int size = mpz_sizeinbase(pubkey.e,2);
+	int binary[size];
 	while( mpz_cmp_d(d,-1) != 0)
 	{
 		popfirstNode(head,d);
 		//compute ciphertext 
 		if( mpz_cmp_d(d,-1) != 0)
 		{
-			mpz_powm(ciphertext,d,pubkey.e,pubkey.n);
+			tobinary(pubkey.e,binary);
+			RSMA(d,ciphertext,pubkey.n,binary,size);
 			append(encryptedhead,ciphertext);
 		}
 	}
@@ -147,7 +149,8 @@ void encrypt(struct public_key pubkey,char *data,struct Node **head,struct Node 
 void decrypt(struct private_key privkey,struct Node** head)
 {
 	mpz_t plaintext,ciphertext;
-
+	int size = mpz_sizeinbase(privkey.d,2);
+	int binary[size];
 	mpz_init(plaintext);
 	mpz_init(ciphertext);
 
@@ -157,7 +160,8 @@ void decrypt(struct private_key privkey,struct Node** head)
 		if( mpz_cmp_d(ciphertext,-1) != 0)
 		{
 			gmp_printf("Ciphertext = %Zd\n",ciphertext);
-			mpz_powm(plaintext,ciphertext,privkey.d,privkey.n);
+			tobinary(privkey.d,binary);
+			RSMA(ciphertext,plaintext,privkey.n,binary,size);
 			gmp_printf("Plaintext = %Zd\n",plaintext);
 		}
 		
